@@ -1,27 +1,40 @@
 async function enviarScript(scriptText){
-	const lines = scriptText.split(/[\n\t]+/).map(line => line.trim()).filter(line => line);
-    main = document
-	textarea = document.querySelector(`div[contenteditable="true"]`)
-	
-	if(!textarea) throw new Error("Não há uma conversa aberta")
-	
-	for(const line of lines){
-		console.log(line)
-	
-		textarea.focus();
-		document.execCommand('insertText', false, line);
-		textarea.dispatchEvent(new Event('change', {bubbles: true}));
-	
-		setTimeout(() => {
-			(main.querySelector(`[class="btn-icon rp btn-circle btn-send animated-button-icon send"]`)).click();
-		}, 100);
-		
-		if(lines.indexOf(line) !== lines.length - 1) await new Promise(resolve => setTimeout(resolve, 250));
-	}
-	
-	return lines.length;
-}
+    const lines = scriptText.split(/[\n\t]+/).map(line => line.trim()).filter(line => line);
+    const textarea = document.querySelector(`div[contenteditable="true"]`);
+    
+    if(!textarea) throw new Error("No hay una conversación abierta");
+    
+    for(const line of lines){
+        console.log("Enviando:", line);
+    
+        textarea.focus();
+        // Insertamos el texto
+        document.execCommand('insertText', false, line);
+        
+        // Disparamos el evento de entrada para que la web detecte el contenido
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    
+        // Pequeña pausa para asegurar que el texto se procesó
+        await new Promise(resolve => setTimeout(resolve, 100));
 
+        // Creamos y disparamos el evento de la tecla Enter
+        const enterEvent = new KeyboardEvent('keydown', {
+            key: 'Enter',
+            code: 'Enter',
+            keyCode: 13,
+            which: 13,
+            bubbles: true
+        });
+        textarea.dispatchEvent(enterEvent);
+        
+        // Espera entre líneas para evitar bloqueos por spam
+        if(lines.indexOf(line) !== lines.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 250));
+        }
+    }
+    
+    return lines.length;
+}
 enviarScript(`
 
 SHREK
